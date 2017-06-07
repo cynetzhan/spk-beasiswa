@@ -1,0 +1,73 @@
+*{
+    font-family:'Ubuntu',Tahoma,sans;
+}
+
+body{background-color: #777;}
+
+a, a:hover, a:focus{
+    color:#ce3636;
+}
+
+.sidebar a{
+    color:#fff;
+}
+
+.sidebar{
+    background-color:#777;
+}
+
+.sidebar ul li a.active, .sidebar ul li a:hover{
+    background-color:#BD4747;
+    color:#fff;
+}
+
+.sidebar ul li a:focus{
+    background-color:#ce3636;
+    color:#fff;
+}
+
+.navbar-default{
+    background-color:#777;
+    border-color:#909090;
+}
+
+.navbar-default .navbar-brand{
+    color:#fff;
+}
+
+.navbar-default .navbar-brand a:hover{
+    color:#ce3636;
+}
+
+.navbar-default .navbar-brand:focus, .navbar-default .navbar-brand:hover{
+    color:#fff;
+    text-decoration:underline;
+}
+
+.affix{
+    width:100%;
+    position: fixed;
+}
+
+.navbar-default .navbar-toggle:focus, .navbar-default .navbar-toggle:hover{
+    background-color:#bd4747;
+}
+
+.navbar-default .navbar-toggle .icon-bar{
+    background-color:#fff;
+}
+
+.well{
+    background-color: #FFF3F3;
+    border: 1px solid #BA4A4A;
+}
+
+.panel-default{
+    border:1px solid #BA4A4A;
+}
+
+.panel-default>.panel-heading{
+    background-color:#ce3636;
+    color:#fff;
+    border-color: #BA4A4A;
+}
