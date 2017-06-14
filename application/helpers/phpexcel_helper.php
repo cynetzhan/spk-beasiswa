@@ -35,12 +35,10 @@ function bacaData($file=null){
 
 function downloadRekap($data){
  $reader = PHPExcel_IOFactory::createReader('Excel2007');
- $excel = $reader->load("bootstrap/"."template/"."template-rekap.xlsx");
+ $excel = $reader->load("bootstrap/"."template/"."template-data-siswa.xlsx");
  $count=0;
+ 
  foreach($data as $dt){
-  $telp=$dt->no_hp;
-  if($dt->no_hp=='') 
-   $telp=$dt->no_telp;
   $thinBorder = array(
 	'borders' => array(
 		'outline' => array(
@@ -49,15 +47,19 @@ function downloadRekap($data){
 		 ),
 	 ),
  );
-  $row=6+$count;
+  $row=8+$count; //mulai baris pertama dari baris ke 8
   $excel->setActiveSheetIndex(0)
-           ->setCellValue('A'.$row,$dt->no_daftar)
-           ->setCellValue('B'.$row,$dt->nama)
-           ->setCellValue('C'.$row,$dt->alamat)
-           ->setCellValue('D'.$row,$dt->nama_ayah)
-           ->setCellValue('E'.$row,umur($dt->tgl_lahir))
-           ->setCellValue('F'.$row,stdaftar($dt->status))
-           ->setCellValue('G'.$row,$telp);
+           ->setCellValue('A'.$row,$dt->nis_siswa)
+           ->setCellValue('B'.$row,$dt->nama_siswa)
+           ->setCellValue('C'.$row,$dt->kls_siswa)
+           ->setCellValue('D'.$row,$dt->alamat_siswa)
+           ->setCellValue('E'.$row,$dt->nama_ayah_siswa)
+           ->setCellValue('F'.$row,tr_pnd($dt->pnd_ayah_siswa,true))
+           ->setCellValue('G'.$row,tr_kerja($dt->krj_ayah_siswa,true))
+           ->setCellValue('H'.$row,tr_hasil($dt->hasil_ayah_siswa))
+           ->setCellValue('I'.$row,$dt->jmsdr_siswa)
+           ->setCellValue('J'.$row,$dt->nrata_siswa)
+           ->setCellValue('K'.$row,tr_status($dt->status_siswa));
            
   $excel->getActiveSheet()->getStyle('A'.$row)->applyFromArray($thinBorder);
   $excel->getActiveSheet()->getStyle('B'.$row)->applyFromArray($thinBorder);
@@ -66,19 +68,24 @@ function downloadRekap($data){
   $excel->getActiveSheet()->getStyle('E'.$row)->applyFromArray($thinBorder);
   $excel->getActiveSheet()->getStyle('F'.$row)->applyFromArray($thinBorder);
   $excel->getActiveSheet()->getStyle('G'.$row)->applyFromArray($thinBorder);
+  $excel->getActiveSheet()->getStyle('H'.$row)->applyFromArray($thinBorder);
+  $excel->getActiveSheet()->getStyle('I'.$row)->applyFromArray($thinBorder);
+  $excel->getActiveSheet()->getStyle('J'.$row)->applyFromArray($thinBorder);
+  $excel->getActiveSheet()->getStyle('K'.$row)->applyFromArray($thinBorder);
   
-  $excel->getActiveSheet()->getStyle('C'.$row)->getAlignment()->setWrapText(true);
+  $excel->getActiveSheet()->getStyle('D'.$row)->getAlignment()->setWrapText(true);
+  $excel->getActiveSheet()->getStyle('H'.$row)->getAlignment()->setWrapText(true);
   $count+=1;
  }
  $count+=6; //total row + 6 from template
  
- $excel->getActiveSheet()->getStyle('A6:G'.$count)->getFont()->setName('Times New Roman');
- $excel->getActiveSheet()->getStyle('A6:G'.$count)->getFont()->setSize(12);
+ $excel->getActiveSheet()->getStyle('A8:G'.$count)->getFont()->setName('Times New Roman');
+ $excel->getActiveSheet()->getStyle('A8:G'.$count)->getFont()->setSize(12);
  $excel->getActiveSheet()->setTitle('Rekap Data');
  $excel->setActiveSheetIndex(0);
 
  header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
- header('Content-Disposition: attachment;filename="01simple.xlsx"');
+ header('Content-Disposition: attachment;filename="rekap-penerima-beasiswa.xlsx"');
  header('Cache-Control: max-age=0');
  header('Cache-Control: max-age=1');
  header ('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past

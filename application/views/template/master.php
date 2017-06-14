@@ -1,5 +1,6 @@
 <?php
 //header('Cache-Control: max-age=900');
+$lv=$this->session->user_akses;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -28,13 +29,15 @@
           <a class="navbar-brand" href="<?php echo base_url(); ?>" style="color:#fff;font-size:14pt;padding-top:15px">SMP Negeri 7 Padang</a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
-        <ul class="nav navbar-nav">
+        <ul class="nav navbar-nav"><?php if(isset($lv)){ ?>
           <li <?php if($this->uri->segment(2)=='dashboard') echo 'class="active"'; ?>><a href="<?php echo base_url('master/dashboard'); ?>">Dashboard</a></li>
           <li class="dropdown <?php if($this->uri->segment(2)=='datasiswa') echo ' active'; ?>">
            <a href="#" class="dropdown-toggle" data-toggle="dropdown" >Siswa <span class="caret"></span></a>
            <ul class="dropdown-menu">
             <li><a href="<?= base_url('master/datasiswa')?>">Data Siswa</a></li>
+            <?php if($lv<3) { ?>
             <li><a href="<?= base_url('master/pembobotan') ?>">Proses Penerima Beasiswa</a></li>
+            <?php } ?>
             <li><a href="<?= base_url('master/beasiswa') ?>">Lihat Penerima Beasiswa</a></li>
            </ul>
           </li>
@@ -42,15 +45,22 @@
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Pengaturan <span class="caret"</span></a>
             <ul class="dropdown-menu">
               <li><a href="<?= base_url('master/ahpset') ?>">Pengaturan Kriteria Berpasangan</a></li>
+              <?php if($lv<3) { ?>
               <li><a href="<?= base_url('master/sawset')?>">Pengaturan Pembobotan</a></li>
+              <?php } 
+              if ($lv==1) { ?>
               <li><a href="<?= base_url('master/pengaturan')?>">Kelola Pengguna</a></li>
+              <?php } 
+              if($lv>1) { ?>
               <li><a href="<?= base_url('master/chpassword/'.$this->session->user_id)?>">Ubah Password</a></li>
+              <?php } ?>
             </ul>
           </li>
         </ul>
         <ul class="nav navbar-nav navbar-right nav-login">
           <li><a href="<?php echo base_url('master/logout'); ?>">Logout</a>
         </ul>
+        <?php } ?>
         </div><!--/.nav-collapse -->
       </div>
     </nav>

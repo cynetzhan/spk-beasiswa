@@ -4,6 +4,8 @@
     <div class="panel-body">
         <div class="col-sm-12" id="containerHasil">
             <h3>Prioritas Penerima Beasiswa<br><small>Diurutkan berdasarkan skor pembobotan tertinggi</small></h3>
+            <a href="<?= base_url('master/rekapexcel') ?>" class="btn btn-sm btn-info" ><span class="glyphicon glyphicon-download"></span> Unduh Penerima Beasiswa (.xlsx)</a>
+            <br>
             <table class="table table-responsive table-bordered" id="hasilbobot">
                 <thead>
                     <tr>

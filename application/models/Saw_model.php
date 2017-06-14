@@ -6,6 +6,12 @@ class Saw_model  extends CI_Model {
         $this->db->where("id_pengaturan",$var);
         return $this->db->get("pengaturan_sistem")->row()->value_pengaturan;
     }
+
+    function updateAturan($var,$val){
+        $this->db->set("value_pengaturan",$val);
+        $this->db->where("id_pengaturan",$var);
+        return $this->db->update("pengaturan_sistem");
+    }
     
     function updateBobotDipakai($data){
         $this->db->set(array(
@@ -14,6 +20,7 @@ class Saw_model  extends CI_Model {
         ));
         return $this->db->update("pengaturan_sistem");
     }
+
     
     function getAllMax(){
         $this->db->select_max('jmsdr_siswa');
@@ -25,6 +32,10 @@ class Saw_model  extends CI_Model {
         return $this->db->get('normal_data_siswa')->row();
     }
     
+    function resetAllWeighted(){
+        return $this->db->truncate("weighted_data_siswa");
+    }
+
     function hitungBobot($kriteria,$max,$data){
         $terproses = 0;
         foreach($data as $sw){

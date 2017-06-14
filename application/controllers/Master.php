@@ -48,7 +48,7 @@ class Master extends CI_Controller {
    $data = array(
      'login_status'=>'1',
      'username'=>$auth['username'],
-     'user_id'=>$userinfo->id,
+     'user_id'=>$userinfo->id_user,
      'user_akses'=>$userinfo->level
    );
    $this->session->set_userdata($data);
@@ -114,6 +114,37 @@ class Master extends CI_Controller {
    $this->template->load('template/master','formsiswa',$data);
  }
 
+ public function tambahuser() {
+   $data=array(
+     'granted' => ($this->session->user_akses==1)
+   );
+   $this->template->load('template/master','tambahuser',$data);
+ }
+
+ public function aksitambahuser(){
+   $data=array(
+     'username'=>$this->input->post('username'),
+     'password'=>password_hash($this->input->post('password'),PASSWORD_DEFAULT),
+     'level'=>$this->input->post('level')
+   );
+   if($this->Master_model->add_user($data)){
+     $this->flashMsg("Pengguna berhasil ditambahkan","Berhasil!","success");
+     redirect(base_url('master/pengaturan'));
+   }
+ }
+
+ public function aksihapususer($id){
+     if($this->session->user_akses==1){
+       if($this->Master_model->delete_user($id)){
+         $this->flashMsg("Pengguna berhasil dihapus!",  "Berhasil","success");
+         redirect(base_url('master/pengaturan'));
+     }
+   } else {
+     $this->flashMsg("Terdapat Kesalahan! Pengguna gagal dihapus!","Galat!","danger");
+     redirect(base_url('master/pengaturan'));
+   }
+ }
+
  public function readExcel(){
    $this->load->helper('phpexcel');
    $hasil = bacaData();
@@ -173,12 +204,12 @@ class Master extends CI_Controller {
  }
 
  public function ahpSet(){
-   //nilai pair-kriteria yang ditampilkan berdasarkan level_user yang mengakses
+   //nilai pair-kriteria yang ditampilkan berdasarkan id_user yang mengakses
   $this->cekLogin();
   $data['kriteria']=$this->Kriteria_model->getKriteria(false);
   $data['kriteriaMatrix']=$this->Kriteria_model->getKriteria();
   $data['jumlahKriteria']=$this->Kriteria_model->countKriteria();
-  $data['pK']=$this->Kriteria_model->getPairKriteria($this->session->user_akses); // need fallback if pair_kriteria is empty (first time use/active criteria changed)
+  $data['pK']=$this->Kriteria_model->getPairKriteria($this->session->user_id); // need fallback if pair_kriteria is empty (first time use/active criteria changed). nvm
   if(empty($data['pK'])) {
     foreach($data['kriteriaMatrix'] as $kol1){
       foreach($data['kriteriaMatrix'] as $kol2){
@@ -231,18 +262,29 @@ class Master extends CI_Controller {
  public function sawSet()
  {
    $this->cekLogin();
+   $eigenkrit = $this->Kriteria_model->getEigen();
+   $this->Kriteria_model->getKriteria(true);
+   $eigenuser = array(); //init to re-arrange the eigen value table. grouping into each user
+   foreach($eigenkrit as $eg){
+     $eigenuser[$eg->id_user]['id_user']=$eg->id_user;
+     $eigenuser[$eg->id_user]['username']=$eg->username;
+     $eigenuser[$eg->id_user][$eg->id_kriteria]['ket_kriteria'] = $eg->ket_kriteria;
+     $eigenuser[$eg->id_user][$eg->id_kriteria]['value_eigen'] = $eg->value_eigen;
+   }
    $data=array(
-     'eigenkrit' => $this->Kriteria_model->getEigen(),
-     'eigenkolom' => $this->Saw_model->getAturan("PAKAR")
+     'eigenkolom' => $this->Saw_model->getAturan("PAKAR"),
+     'kriterialist' => $this->Kriteria_model->kriteriaLabel,
+     'eigenkrit' => $eigenuser
    );
    $this->template->load('template/master','sawmaster',$data);
+   //print_r($data);
  }
  
  public function sawUpdate()
  {
    $this->cekLogin();
    //$data=array(); //belum dipakai
-   $update = $this->Saw_model->updateBobotDipakai($this->input->post('eigenval',TRUE));
+   $update = $this->Saw_model->updateAturan("PAKAR",$this->input->post('eigenval',TRUE));
    if($update){
      $this->flashMsg("Berhasil mengubah pengaturan!","Sukses","success");
    } else {
@@ -281,13 +323,27 @@ class Master extends CI_Controller {
      'pakar' => $this->Saw_model->getAturan("PAKAR"),
      'jumlahsw' => $this->Siswa_model->total_rows(),
      'jumlahkr' => $this->Kriteria_model->countKriteria(),
-     'lastrun' => $this->Saw_model->getAturan("PEMBOBOTAN_TERAKHIR_BERJALAN")
+     'lastrun' => $this->Saw_model->getAturan("PEMBOBOTAN_TERAKHIR_BERJALAN"),
+     'enableProcess' => true
    );
+   if($data['pakar']!='eirata'){
+     $user = $this->Master_model->get_user_byid($data['pakar']);
+     $data['pakar'] = $user->username;
+   } else {
+     $data['pakar'] = "Bobot Rata-Rata Pakar";
+   }
+   $countPair = $this->Kriteria_model->countPairKriteria();
+   $userCount = $countPair/$data['jumlahkr'];
+   if(($userCount>0 && !is_int($userCount)) or ($userCount<1)){
+     $data['enableProcess'] = false;
+     $this->flashMsg("Proses Pembobotan belum siap! Periksa pengaturan Kriteria dan Pembobotan","Galat!","danger");
+   }
    $this->template->load('template/master','bobot_proses',$data);
+  //  echo var_dump($data);
+  //  echo var_dump($countPair);
  }
  
  public function prosesBobot(){
-   //TODO: update pengaturan 'pembobotan terakhir', isinya tanggal fungsi ini terakhir dipanggil
    //limit : 50 siswa
    $start=$this->input->post('start');
    $limit=$this->input->post('limit');
@@ -298,17 +354,26 @@ class Master extends CI_Controller {
      'jumlahkr' => $this->Kriteria_model->countKriteria(),
    );
    
-   $bobot = ($data['pakar']=='eirata')?$this->Kriteria_model->avgEigen():$this->Kriteria_model->getEigen($data['pakar']);
+   $bobot = ($data['pakar']=='eirata')?$this->Kriteria_model->avgEigen():$this->Kriteria_model->getEigen($data['pakar'],true);
    $max = $this->Saw_model->getAllMax();
    $siswa = $this->Siswa_model->get_limit_data($limit,$start);
    $weightprocess = $this->Saw_model->hitungBobot($bobot,$max,$siswa);
-   $kolom = array_keys($bobot);
+   //$kolom = array_keys($bobot);
    //print_r($kolom);
    //print_r($max);
    echo $weightprocess;
    //echo "Script running time: ";
    //echo microtime(true)-$starttime;
-   //print_r($siswa);
+   //print_r($bobot);
+ }
+
+ public function terakhirBobotNotice(){
+   $this->Saw_model->updateAturan("PEMBOBOTAN_TERAKHIR_BERJALAN",date('d-m-Y H:i:s'));
+ }
+
+ public function resetProcessedData(){
+   $this->Siswa_model->resetNormalData();
+   $this->Saw_model->resetAllWeighted();
  }
  
  public function hasilBobot(){
@@ -320,26 +385,14 @@ class Master extends CI_Controller {
    $data['siswa']=$this->Siswa_model->getWeightedSiswa();
    $this->template->load("template/master","terimabeasiswa",$data);
  }
- 
- 
- public function rekapdata(){
-  $this->cekLogin();
-  $data['thnajar']=$this->Master_model->get_thn_ajar();
-  $this->template->load('template/master','rekapdata',$data);
- }
- 
+
  public function rekapExcel(){
   $this->load->helper('PHPexcel');
-  $dt['id_thn_ajar']=$this->input->post("id_thn_ajar");
-  $dt['status']=$this->input->post("status");
-  $data['hasil']=$this->Master_model->get_rekap_pendaftar($dt); //for debugging reason, i put this on an array
+  $data['hasil']=$this->Siswa_model->getWeightedSiswa(0,0,true); //for debugging reason, i put this on an array
   //echo var_dump($data['hasil']);
   downloadRekap($data['hasil']);
  }
- 
- 
-
- 
+  
  public function detailsiswa($id){
   $this->load->model('Pendaftar_model');
   $datasiswa=$this->Pendaftar_model->get_by_id($id);

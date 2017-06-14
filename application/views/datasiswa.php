@@ -2,7 +2,11 @@
  <div class="panel-heading">Data Siswa</div>
  <div class="panel-body">
   
+    <?php 
+    $lv=$this->session->user_akses;
+    if($lv==1) { ?>
     <a href="<?= base_url('master/tambahsiswa') ?>" class="btn btn-info"><span class="glyphicon glyphicon-plus"></span>Tambah Siswa</a>
+    <?php } ?>
   
   <table class="table table-responsive table-bordered" id="datasiswa">
    <thead>
@@ -29,7 +33,7 @@
      <td><?php echo tr_kerja($dt->krj_ayah_siswa,true) ?></td>
      <td><?php echo tr_hasil($dt->hasil_ayah_siswa) ?></td>
      <td><?php echo tr_status($dt->status_siswa); ?></td>
-     <td><a href="<?php echo base_url('master/editsiswa/'.$dt->nis_siswa); ?>">Ubah</a></td>
+     <td><?php if($lv==1) {?><a href="<?php echo base_url('master/editsiswa/'.$dt->nis_siswa); ?>">Ubah</a><?php } ?></td>
     </tr>
    <?php } ?>
    </tbody>

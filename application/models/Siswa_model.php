@@ -46,11 +46,15 @@ class Siswa_model extends CI_Model
     function get_limit_data($limit, $start = 0, $q = NULL) {
         $this->db->order_by($this->id, $this->order);
         $this->db->limit($limit, $start);
-        return $this->db->get($this->table)->result();
+        return $this->db->get("normal_data_siswa")->result();
     }
     
-    function getWeightedSiswa($limit=0,$start=0){
-        $this->db->select("data_siswa.nis_siswa, data_siswa.nama_siswa, value_weighted");
+    function getWeightedSiswa($limit=0,$start=0,$rekapall=false){
+        if($rekapall) {
+         $this->db->select("data_siswa.nis_siswa, data_siswa.nama_siswa,data_siswa.kls_siswa,data_siswa.alamat_siswa,data_siswa.nama_ayah_siswa,data_siswa.krj_ayah_siswa,data_siswa.pnd_ayah_siswa,data_siswa.hasil_ayah_siswa,data_siswa.jmsdr_siswa,data_siswa.nrata_siswa,data_siswa.status_siswa");
+        } else {
+         $this->db->select("data_siswa.nis_siswa, data_siswa.nama_siswa, value_weighted");
+        }
         $this->db->order_by("value_weighted","DESC");
         $this->db->join("data_siswa","data_siswa.nis_siswa=weighted_data_siswa.nis_siswa");
         $this->db->limit($limit,$start);
@@ -80,7 +84,9 @@ class Siswa_model extends CI_Model
         return $this->db->insert_batch("normal_data_siswa",$data);
     }
     // insert data
-    
+    function resetNormalData(){
+        return $this->db->truncate("normal_data_siswa");
+    }
 
     // update data
     function update($id, $data)

@@ -4,16 +4,6 @@ function jkel($jk){
   else return "Laki-laki";
 }
 
-function pakar($var){
-  $arr=array(
-    'eirata' => "Bobot Rata-rata Pakar",
-    'eigen_krit_kom' => "Guru BK 1",
-    'eigen_krit_kes' => "Guru BK 2",
-    'eigen_krit_dpk' => "Pemberi Beasiswa"
-  );
-  return $arr[$var];
-}
-
 function agama($ag){
  switch($ag){
  case 1:
@@ -98,7 +88,7 @@ function umur($tgl,$thnonly=false){
  
 
 function akunlv($lv){
- $level=array(1=>'Administrator','Kepala Sekolah');
+ $level=array(1=>'Administrator','Guru','Pakar');
  return $level[$lv];
 }
 
