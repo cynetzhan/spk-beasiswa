@@ -34,7 +34,11 @@
             <tr>
                 <th>Rata-rata</th>
                 <?php foreach($kriterialist as $kr){
-                    echo "<td>".number_format(array_sum($jumlah_eigen[$kr])/count($eigenkrit),4)."</td>";
+                    if(isset($jumlah_eigen[$kr])){
+                     echo "<td>".number_format(array_sum($jumlah_eigen[$kr])/count($eigenkrit),4)."</td>";
+                    } else {
+                     echo "<td>0</td>";
+                    }
                 } ?>
             </tr>
           </tfoot>

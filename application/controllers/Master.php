@@ -10,6 +10,10 @@ class Master extends CI_Controller {
   $this->load->library('form_validation');
  }
  
+ /**
+   * @param [enabled] Perbolehkan cekLogin di matikan/dihidupkan
+   * 
+   */
  function cekLogin($enabled=true){
   if($enabled){
    if(!isset($_SESSION['login_status']) || $_SESSION['login_status']==0){
@@ -228,11 +232,17 @@ class Master extends CI_Controller {
   $ahp = new AHP();
   $ahp->setCriteria($this->input->post("krit"));
   $data['kritMatriks'] = $ahp->altCriteria(); //normalisasi matrix
-  $ahp->kuadratMatriks(); 
-  $data['kritEigen'] = $ahp->eigenCriteria();
-  $data['user_id']=$this->session->user_id;
-  $data['user_lv']=$this->session->user_akses;
-  $this->Kriteria_model->update($data);
+  $ahp->kuadratMatriks();
+  // cek consistence ratio sebelum dimasukkan. jangan simpan nilai kriteria apabila CI > 10% (0.1)
+  $ahpconsistency = $ahp->consistenceRatio();
+  if($ahpconsistency['isConsistence']){
+   $data['kritEigen'] = $ahp->eigenCriteria();
+   $data['user_id']=$this->session->user_id;
+   $data['user_lv']=$this->session->user_akses;
+   $this->Kriteria_model->update($data);
+  }
+  $this->session->set_flashdata($ahpconsistency);
+  //flash session dengan nilai CI,CR dan lambda dari perhitungan AHP. ditampilkan di halaman input kriteria
   redirect(base_url('Master/ahpSet'));
   //print_r($data['kritEigen']);
  }
@@ -244,19 +254,25 @@ class Master extends CI_Controller {
    $data['kriteria']=array();
    // periksa kriteria yang aktif dan non-aktif
    $kritCurrent=$this->Kriteria_model->getKriteria(false);
-   $kritNew=array_flip($this->input->post('pakai_kriteria')); //flip the value to keys
-   foreach($kritCurrent as $krc){
-     $data['kriteria'][] = array(
-       'id_kriteria' => $krc->id_kriteria,
-       'pakai_kriteria' => (isset($kritNew[$krc->id_kriteria]))?"1":"0"
-     );
+   // kriteria terpilih minimal 3 (RI 1 dan 2 bernilai 0), maka perlu diperiksa input dari user
+   if(count($this->input->post('pakai_kriteria')) > 2){
+    $kritNew=array_flip($this->input->post('pakai_kriteria')); //flip the value to keys
+    foreach($kritCurrent as $krc){
+      $data['kriteria'][] = array(
+        'id_kriteria' => $krc->id_kriteria,
+        'pakai_kriteria' => (isset($kritNew[$krc->id_kriteria]))?"1":"0"
+      );
+    }
+    $hasil = $this->Kriteria_model->updateKriteriaAktif($data);
+    $this->Kriteria_model->resetAllPair(); // delete every pair criteria
+    if($hasil==6)  { //kriteria ada 6
+      $this->flashMsg("Berhasil mengubah pengaturan!","Sukses","success");
+      
+    }
+   } else {
+    $this->flashMsg("Kriteria yang dipilih harus <strong>lebih dari 2</strong>","Gagal!","danger");
    }
-   $hasil = $this->Kriteria_model->updateKriteriaAktif($data);
-   $this->Kriteria_model->resetAllPair(); // delete every pair criteria
-   if($hasil==6)  { //kriteria ada 6
-     $this->flashMsg("Berhasil mengubah pengaturan!","Sukses","success");
-     redirect(base_url('master/ahpset'));
-   } 
+   redirect(base_url('master/ahpset'));
  }
  
  public function sawSet()
@@ -385,137 +401,30 @@ class Master extends CI_Controller {
    $data['siswa']=$this->Siswa_model->getWeightedSiswa();
    $this->template->load("template/master","terimabeasiswa",$data);
  }
+ 
+ public function unduhRekap(){
+  if($this->input->post('format')=='PDF'){
+   $this->rekapPDF($this->input->post('limit'));
+  } else if($this->input->post('format')=='EXCEL'){
+   $this->rekapExcel($this->input->post('limit'));
+  }
+ }
 
- public function rekapExcel(){
+ private function rekapExcel($limit){
   $this->load->helper('PHPexcel');
-  $data['hasil']=$this->Siswa_model->getWeightedSiswa(0,0,true); //for debugging reason, i put this on an array
+  $data['hasil']=$this->Siswa_model->getWeightedSiswa($limit,0,true); //for debugging reason, i put this on an array
   //echo var_dump($data['hasil']);
   downloadRekap($data['hasil']);
  }
+ 
+ private function rekapPDF($limit){
+  $data['hasil']=$this->Siswa_model->getWeightedSiswa($limit,0);
+  $this->load->view('pdflaporan',$data);
+ }
   
- public function detailsiswa($id){
-  $this->load->model('Pendaftar_model');
-  $datasiswa=$this->Pendaftar_model->get_by_id($id);
-  if($datasiswa==null){
-   show_error("Nomor pendaftaran yang anda masukkan tidak tersedia.",404,"Data siswa tidak ditemukan!");
-  }
-  $data['datasiswa']=$datasiswa;
-  $this->template->load('template/master','detailsiswa',$data);
- }
- 
- public function updatesiswa($id){
-  $this->load->model('Pendaftar_model');
-  $datasiswa=$this->Pendaftar_model->get_by_id($id);
-  if($datasiswa==null){
-   show_error("Nomor pendaftaran yang anda masukkan tidak tersedia.",404,"Data siswa tidak ditemukan!");
-  }
-  $data = array(
-    'nama' => set_value('nama'),
-    'jenis_kel' => set_value('jenis_kel'),
-    'tempat_lahir' => set_value('tempat_lahir'),
-    'tgl_lahir' => set_value('tgl_lahir'),
-    'agama' => set_value('agama'),
-    'nama_panggilan' => set_value('nama_panggilan'),
-    'nikk_siswa' => set_value('nikk_siswa'),
-    'prestasi' => set_value('prestasi'),
-    'jumlah_saudara' => set_value('jumlah_saudara'),
-    'tinggi' => set_value('tinggi'),
-    'berat' => set_value('berat'),
-    'goldar' => set_value('goldar'),
-    'alamat' => set_value('alamat'),
-    'no_telp' => set_value('no_telp'),
-    'anak_ke' => set_value('anak_ke'),
-    'nama_ayah' => set_value('nama_ayah'),
-    'alamat_ortu' => set_value('alamat_ortu'),
-    'agama_ayah' => set_value('agama_ayah'),
-    'kerja_ayah' => set_value('kerja_ayah'),
-    'hasil_ayah' => set_value('hasil_ayah'),
-    'nikk_ayah' => set_value('nikk_ayah'),
-    'nikk_ibu' => set_value('nikk_ibu'),
-    'nama_wali' => set_value('nama_wali'),
-    'kerja_wali' => set_value('kerja_wali'),
-    'hasil_wali' => set_value('hasil_wali'),
-    'tplahir_ayah' => set_value('tplahir_ayah'),
-    'tglahir_ayah' => set_value('tglahir_ayah'),
-    'nama_ibu' => set_value('nama_ibu'),
-    'kerja_ibu' => set_value('kerja_ibu'),
-    'hasil_ibu' => set_value('hasil_ibu'),
-    'tplahir_ibu' => set_value('tplahir_ibu'),
-    'tglahir_ibu' => set_value('tglahir_ibu'),
-    'agama_ibu' => set_value('agama_ibu'),
-    'penyakit' => set_value('penyakit'),
-    'jarak_sekolah' => set_value('jarak_sekolah'),
-    'status_tinggal' => set_value('status_tinggal'),
-    'status_ortu' => set_value('status_ortu'),
-    'nama_wali' => set_value('nama_wali'),
-    'kerja_wali' => set_value('kerja_wali'),
-    'hasil_wali' => set_value('hasil_wali'),
-    'penyakit' => set_value('penyakit')
-	 );
-  $data['datasiswa']=$datasiswa;
-  $this->template->load('template/master','updatesiswa',$data);
- }
- 
- public function updatesiswa_action(){
-  $this->load->model('Pendaftar_model');
-  $data = array(
-    'tgl_daftar' => date('Y-m-d H:i:s'),
-    'nama' => specialRemove($this->input->post('nama',TRUE)),
-    'jenis_kel' => specialRemove($this->input->post('jenis_kel',TRUE)),
-    'tempat_lahir' => specialRemove($this->input->post('tempat_lahir',TRUE)),
-    'tgl_lahir' => $this->input->post('tgl_lahir'),
-    'agama' => specialRemove($this->input->post('agama',TRUE)),
-    'nama_panggilan' => specialRemove($this->input->post('nama_panggilan',TRUE)),
-    //'nikk_siswa' => specialRemove($this->input->post('nikk_siswa',TRUE)),
-    'duduk_kelas' => '',
-    'prestasi' => specialRemove($this->input->post('prestasi',TRUE)),
-    'jumlah_saudara' => specialRemove($this->input->post('jumlah_saudara',TRUE)),
-    //'tinggi' => specialRemove($this->input->post('tinggi',TRUE)),
-    //'berat' => specialRemove($this->input->post('berat',TRUE)),
-    'goldar' => specialRemove($this->input->post('goldar',TRUE)),
-    'alamat' => specialRemove($this->input->post('alamat',TRUE)),
-    'no_telp' => specialRemove($this->input->post('no_telp',TRUE)),
-    'anak_ke' => specialRemove($this->input->post('anak_ke',TRUE)),
-    'nama_ayah' => specialRemove($this->input->post('nama_ayah',TRUE)),
-     'alamat_ortu' => specialRemove($this->input->post('alamat_ortu',TRUE)),
-     'agama_ayah' => specialRemove($this->input->post('agama_ayah',TRUE)),
-     'kerja_ayah' => specialRemove($this->input->post('kerja_ayah',TRUE)),
-     'hasil_ayah' => uang(specialRemove($this->input->post('hasil_ayah',TRUE))),
-     //'nikk_ayah' => specialRemove($this->input->post('nikk_ayah',TRUE)),
-     //'nikk_ibu' => specialRemove($this->input->post('nikk_ibu',TRUE)),
-     'nama_wali' => specialRemove($this->input->post('nama_wali',TRUE)),
-     'kerja_wali' => specialRemove($this->input->post('kerja_wali',TRUE)),
-     'hasil_wali' => uang(specialRemove($this->input->post('hasil_wali',TRUE))),
-     'tplahir_ayah' => specialRemove($this->input->post('tplahir_ayah',TRUE)),
-     'tglahir_ayah' => $this->input->post('tglahir_ayah',TRUE),
-     'nama_ibu' => specialRemove($this->input->post('nama_ibu',TRUE)),
-     'kerja_ibu' => specialRemove($this->input->post('kerja_ibu',TRUE)),
-     'hasil_ibu' => uang(specialRemove($this->input->post('hasil_ibu',TRUE))),
-     'tplahir_ibu' => specialRemove($this->input->post('tplahir_ibu',TRUE)),
-     'tglahir_ibu' => $this->input->post('tglahir_ibu',TRUE),
-     'agama_ibu' => specialRemove($this->input->post('agama_ibu',TRUE)),
-     'penyakit' => specialRemove($this->input->post('penyakit',TRUE)),
-     'jarak_sekolah' => specialRemove($this->input->post('jarak_sekolah',TRUE)),
-     'status_tinggal' => specialRemove($this->input->post('status_tinggal',TRUE)),
-     'status_ortu' => specialRemove($this->input->post('status_ortu',TRUE)),
-    'status' => '1',
-    'id_thn_ajar' => date('y')
-	    );
-     $id=$this->input->post('id');
-  //$this->_rules();
-  //if($this->form_validation->run() == FALSE) {
-   //$this->template->load('master/updatesiswa','updatesiswa',$data);
-   //redirect(base_url('publik/formdaftar'));
-  //} else {
-   $this->Pendaftar_model->update($id,$data);
-   redirect(base_url('master/detailsiswa/'.$id));
-  //}
- }
- 
  public function deletesiswa($id){
   $this->cekLogin();
-  $this->load->model('Pendaftar_model');
-  $this->Pendaftar_model->delete($id);
+  $this->Siswa_model->delete($id);
   $this->flashMsg("Data siswa berhasil dihapus!","Berhasil","success");
   redirect(base_url('master/datasiswa'));
  }
@@ -567,77 +476,11 @@ class Master extends CI_Controller {
    $this->flashMsg("Password yang anda masukkan salah!","Gagal!","danger");
    redirect(base_url('master/chpassword/'.$data['id']));
   }
-  redirect(base_url('master/pengaturan'));
- }
- 
- public function actionaturan(){
-  $this->cekLogin();
-  $aturan['atur']['id_thn_ajar']=$this->input->post('id_thn_ajar');
-  $aturan['atur']['tgl_daftar_buka']=$this->input->post('tgl_daftar_buka');
-  $aturan['atur']['tgl_daftar_tutup']=$this->input->post('tgl_daftar_tutup');
-  $aturan['atur']['tahun_ajar']=date('Y',strtotime($aturan['atur']['tgl_daftar_tutup']));
-  $aturan['atur']['tutup_daftar']=$this->input->post('tutup_daftar');
-  $aturan['atur']['aktif']=1;
-  
-  $aturan['param']['id_thn_ajar_new']=date('y',strtotime($aturan['atur']['tgl_daftar_tutup']));
-  $aturan['param']['ganti_thn_ajaran']=false;
-  
-  if($aturan['param']['id_thn_ajar_new']!=$aturan['atur']['id_thn_ajar']) 
-   $aturan['param']['ganti_thn_ajaran']=true;
-  
-  if((date('U',strtotime($aturan['atur']['tgl_daftar_buka']))-date('U',strtotime($aturan['atur']['tgl_daftar_tutup']))) > 0){
-   $this->flashMsg("Tanggal akhir pendaftaran tidak boleh lebih dahulu dari tanggal awal!","Gagal","danger");
+  if($this->session->user_akses===1){
    redirect(base_url('master/pengaturan'));
-  }
-  
-  $update=$this->Master_model->update_setting($aturan);
-  if($update){
-   $this->flashMsg("Berhasil mengubah pengaturan!","Sukses","success");
   } else {
-   $this->flashMsg("Terdapat kesalahan saat mengubah pengaturan","Gagal","danger");
+   redirect(base_url('master/dashboard'));
   }
-  redirect(base_url('master/pengaturan'));
- }
- 
- public function actionsiswa(){
-  $this->cekLogin();
-  if($this->input->post("sort")!=null){
-   redirect(base_url("master/datasiswa/".$this->input->post('sortir')."/".$this->input->post("order")."/".$this->input->post('carinama')));
-  } else {
-   
-   if($this->input->post("check")===null || $this->input->post("status")===null){
-    $update=0;
-   } else {
-    $update=$this->Master_model->update_status($this->input->post("check"),$this->input->post("status"));
-   }
-   
-   if($update==0) {
-    //echo "Terdapat pendaftar tidak terupdate.";
-    $this->flashMsg("Tidak ada aksi yang dibuat","Gagal","warning");
-   } else {
-    $this->flashMsg("Berhasil mengubah status pendaftar!","Sukses!","success");
-   }
-  }
-  redirect(base_url('master/datasiswa'));
-/*   $batch=array();
-  foreach($this->input->post("check") as $id){
-   $batch[]=array("id"=>$id,"status"=>$this->input->post("status"));
-  }
-  $data = array(
-   array(
-      'title' => 'My title' ,
-      'name' => 'My Name 2' ,
-      'date' => 'My date 2'
-   ),
-   array(
-      'title' => 'Another title' ,
-      'name' => 'Another Name 2' ,
-      'date' => 'Another date 2'
-   )
-);
-  print_r($batch);
-  print_r($data); */
-  
  }
  
  private function flashMsg($msg,$alt,$cls){

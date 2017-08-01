@@ -68,7 +68,7 @@ $lv=$this->session->user_akses;
       <br>
       <div class="container">
         <div class="alert alert-<?php echo $this->session->flashdata('class'); ?>">
-          <strong><?php echo $this->session->flashdata('message'); ?></strong> <?php echo $this->session->flashdata('value'); ?>
+          <strong><?php echo $this->session->flashdata('alert'); ?></strong> <?php echo $this->session->flashdata('message'); ?>
         </div>
       </div>
     <?php } 
@@ -86,7 +86,7 @@ $lv=$this->session->user_akses;
 	 <a class="up-arrow" href="#top" data-toggle="tooltip" title="TO TOP">
     <span class="glyphicon glyphicon-chevron-up"></span>
   </a><br><br>
-		Sistem Pendaftaran Peserta Didik Baru <a href="<?php echo base_url('master/login'); ?>" style="color:#000;text-decoration:none">Madrasah Ibtidaiyah Negeri 1 Pekanbaru</a>
+		Sistem Pendukung Keputusan Sekolah Menengah Pertama Negeri 7 Padang
 	</footer>
 
 </body>

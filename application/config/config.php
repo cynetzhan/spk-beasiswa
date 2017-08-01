@@ -24,6 +24,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |
 */
 $config['base_url'] = 'http://localhost/spk-beasis/';
+//$config['base_url'] = 'http://hfzee.rf.gd/spk-beasis/';
 
 /*
 |--------------------------------------------------------------------------

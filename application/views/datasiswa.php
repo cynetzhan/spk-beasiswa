@@ -33,7 +33,7 @@
      <td><?php echo tr_kerja($dt->krj_ayah_siswa,true) ?></td>
      <td><?php echo tr_hasil($dt->hasil_ayah_siswa) ?></td>
      <td><?php echo tr_status($dt->status_siswa); ?></td>
-     <td><?php if($lv==1) {?><a href="<?php echo base_url('master/editsiswa/'.$dt->nis_siswa); ?>">Ubah</a><?php } ?></td>
+     <td><?php if($lv==1) {?><a href="<?php echo base_url('master/editsiswa/'.$dt->nis_siswa); ?>">Ubah</a> | <a href="<?= base_url('master/deletesiswa/'.$dt->nis_siswa); ?>" onclick="return confirm('Hapus siswa <?= $dt->nama_siswa ?>?')">Hapus</a><?php } ?></td>
     </tr>
    <?php } ?>
    </tbody>
