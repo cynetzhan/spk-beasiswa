@@ -45,6 +45,7 @@
               if($lv <3){
               ?>
                <li>Pengguna dapat memilih kriteria yang akan dijadikan parameter pembobotan pada bagian "Pengaturan Parameter". Kriteria yang aktif ditandai kotak checklist</li>
+               <li>Pengguna harus mengaktifkan kriteria lebih dari dua. Jika kriteria aktif kurang dari tiga, maka pengaturan tidak akan disimpan.</li>
                <li><strong>Apabila kriteria yang aktif diubah, maka seluruh nilai perbandingan kriteria akan dihapus untuk seluruh pengguna. Guru dan Pakar harus mengisi kembali nilai kriteria berpasangan</strong></li>
               <?php } ?>
           </div>

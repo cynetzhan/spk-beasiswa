@@ -8,10 +8,9 @@
             <strong>Unduh Laporan</strong>
              <select name="limit" class="form-control">
               <option value="0">Seluruhnya</option>
-              <option value="10">10</option>
-              <option value="20">20</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
+              <?php for($i=0;$i<=200;$i+=10){ ?>
+               <option value="<?php echo $i; ?>"><?php echo $i; ?></option>
+              <?php } ?>
              </select>
              <button type="submit" name="format" value="PDF" class="btn btn-sm btn-info">Format PDF</button>
              <button type="submit" name="format" value="EXCEL" class="btn btn-sm btn-info">Format Excel</button>
