@@ -17,7 +17,7 @@
      <th>Nama Ayah</th>
      <th>Pendidikan Terakhir Ayah</th>
      <th>Pekerjaan Ayah</th>
-     <th>Penghasilan Ayah</th>
+     <th>Penghasilan Orang Tua</th>
      <th>Status Orang Tua</th>
      <th>Aksi</th>
     </tr>

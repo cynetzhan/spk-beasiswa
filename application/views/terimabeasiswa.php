@@ -1,6 +1,6 @@
 
 <div class="panel panel-default">
-    <div class="panel-heading">Pembobotan</div>
+    <div class="panel-heading">Penerima Beasiswa</div>
     <div class="panel-body">
         <div class="col-sm-12" id="containerHasil">
             <h3>Prioritas Penerima Beasiswa<br><small>Diurutkan berdasarkan skor pembobotan tertinggi</small></h3>
@@ -20,6 +20,7 @@
             <table class="table table-responsive table-bordered" id="hasilbobot">
                 <thead>
                     <tr>
+                        <th>Rank #</th>
                         <th>NIS</th>
                         <th>Nama Siswa</th>
                         <th>Skor Hasil</th>
@@ -27,8 +28,10 @@
                 </thead>
                 <tbody id="isihasilbobot">
                     <?php
+                    $i = 1;
                     foreach($siswa as $sw){
                        echo "<tr>";
+                       echo "<td>".$i++."</td>";
                        echo "<td>".$sw->nis_siswa."</td>";
                        echo "<td>".$sw->nama_siswa."</td>";
                        echo "<td>".number_format($sw->value_weighted,3)."</td>";
@@ -47,6 +50,6 @@
       var table = $("#hasilbobot").DataTable({
           "lengthChange":false
       });
-        table.column('2:visible').order('desc').draw(); 
+        table.column('3:visible').order('desc').draw(); 
     });
 </script>

@@ -76,13 +76,13 @@ $query_builder = TRUE;
 $db['default'] = array(
 	'dsn'	=> '',
 	'hostname' => 'localhost',
-	//'hostname' => 'sql211.rf.gd',
+	
 	'username' => 'root',
-	//'username' => 'rfgd_20240173',
-	'password' => '0899post',
-	//'password' => 'ntP5yaoo',
+	
+	'password' => '',
+	
 	'database' => 'beasiswa_temp',
-	//'database' => 'rfgd_20240173_spk',
+	
 	'dbdriver' => 'mysqli',
 	'dbprefix' => '',
 	'pconnect' => FALSE,

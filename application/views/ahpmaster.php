@@ -48,7 +48,71 @@
                <li>Pengguna harus mengaktifkan kriteria lebih dari dua. Jika kriteria aktif kurang dari tiga, maka pengaturan tidak akan disimpan.</li>
                <li><strong>Apabila kriteria yang aktif diubah, maka seluruh nilai perbandingan kriteria akan dihapus untuk seluruh pengguna. Guru dan Pakar harus mengisi kembali nilai kriteria berpasangan</strong></li>
               <?php } ?>
+              <button type='button' class='btn btn-info btn-sm' data-toggle='modal' data-target='#panduan' ><span class="glyphicon glyphicon-question-sign"></span> Tabel Panduan Penilaian Kriteria</button>
           </div>
+          <div id="panduan" class="modal fade" role="dialog">
+           <div class="modal-dialog">
+             <div class="modal-content">
+               <div class="modal-header">
+                 <button type="button" class="close" data-dismiss="modal">&times;</button>
+                 <h4 class="modal-title"><span class="glyphicon glyphicon-question-sign"></span> Tabel Panduan Penilaian Kriteria</h4>
+               </div>
+               <div class="modal-body">
+                 <p>Masing-masing kolom diisi dengan angka antara 1 s/d 9, dimana angka tersebut adalah nilai dari perbandingan berpasangan antar kriteria.</p>
+                 <style>
+                  table#panduan_tabel>tbody>tr>td:first-child{text-align:center}
+                  .rd{color:rgb(237,28,36);}
+                  .bl{color:rgb(0,162,232);}
+                 </style>
+                 <table class="table table-responsive table-striped" id="panduan_tabel">
+                  <thead>
+                   <tr>
+                    <th>Nilai</th>
+                    <th>Keterangan</th>
+                   </tr>
+                  </thead>
+                  <tbody>
+                   <tr>
+                    <td>1</td>
+                    <td>Kedua kriteria <strong>sama pentingnya</strong></td>
+                   </tr>
+                   <tr>
+                    <td>3</td>
+                    <td>Salah satu kriteria <strong>sedikit lebih penting</strong></td>
+                   </tr>
+                   <tr>
+                    <td>5</td>
+                    <td>Salah satu kriteria <strong>jelas lebih penting</strong></td>
+                   </tr>
+                   <tr>
+                    <td>7</td>
+                    <td>Salah satu kriteria <strong>sangat jelas lebih penting</strong></td>
+                   </tr>
+                   <tr>
+                    <td>9</td>
+                    <td>Salah satu kriteria <strong>paling lebih penting</strong></td>
+                   </tr>
+                   <tr>
+                    <td>2,4,6,8</td>
+                    <td>Digunakan apabila ragu-ragu diantara dua nilai yang berdekatan</strong></td>
+                   </tr>
+                   <tr>
+                    <td>Kebalikan (1/Nilai)</td>
+                    <td>Apabila satu kriteria mendapat sebuah nilai, maka kriteria pasangannya mendapat kebalikannya (1/nilai)</td>
+                   </tr>
+                  </tbody>
+                 </table>
+                 <h4>Contoh</h4>
+                 <div style="text-align:center"><img src="<?= base_url('bootstrap/images/nilai-kr.jpg') ?>" alt="contoh"/></div>
+                 <p>Anda mengisi nilai perbandingan kriteria antara <span class='rd'><strong>Jumlah Saudara (JB)</strong></span> dan <span class='bl'><strong>Nilai Rata-Rata (NR)</strong></span>. Apabila <span class='rd'><strong>JB</strong></span> <strong>sedikit lebih penting</strong> dari <span class='bl'><strong>NR</strong></span>, maka kolom diisi nilai <strong>3</strong>. Sebaliknya, apabila <span class='bl'><strong>NR</strong></span> <strong>sedikit lebih penting</strong> dari <span class='rd'><strong>JB</strong></span>, maka diisi dengan <strong>1/3</strong></p>
+                 <p><span class="glyphicon glyphicon-info-sign"></span> Perhatikan untuk mengisi nilai kriteria perbandingan berpasangan dengan urutan pasangan <span class='rd'><strong>Baris</strong></span> lalu <span class='bl'><strong>Kolom</strong></span></p>
+               </div>
+               <div class="modal-footer">
+                 <button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button>
+               </div>
+             </div>
+           </div>
+         </div>
       </div>
       <?php
       if($lv==3) echo "<div class='col-sm-4'></div>";
@@ -69,13 +133,13 @@
       echo "<table class='table table-bordered'>";
       echo "<thead><tr><th><span class='glyphicon glyphicon-remove'></span></th>";
       foreach($kriteriaMatrix as $kr){
-       echo "<th>".$kr->id_kriteria."</th>";
+       echo "<th>".$kr->ket_kriteria."</th>";
       }
       echo "</tr></thead>";
       $baris=0;
       foreach($kriteriaMatrix as $kr){
        $key = array_keys($pK);
-       echo "<tr><td>".$kr->id_kriteria."</td>";
+       echo "<tr><td>".$kr->ket_kriteria."</td>";
        for($j=0;$j<$jumlahKriteria;$j++){
         echo "<td><input type='text' name='krit[$baris][$j]' class='form-control' ";
         echo(($baris>$j)?"value='".number_format($pK[$kr->id_kriteria][$key[$j]],2,'.',',') ."' disabled":""); // disabled karena pair kiri-bawah

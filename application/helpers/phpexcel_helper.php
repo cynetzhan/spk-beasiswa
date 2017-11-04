@@ -58,7 +58,7 @@ function downloadRekap($data){
            ->setCellValue('G'.$row,tr_kerja($dt->krj_ayah_siswa,true))
            ->setCellValue('H'.$row,tr_hasil($dt->hasil_ayah_siswa))
            ->setCellValue('I'.$row,$dt->jmsdr_siswa)
-           ->setCellValue('J'.$row,$dt->nrata_siswa)
+           ->setCellValue('J'.$row,tr_nrata($dt->nrata_siswa))
            ->setCellValue('K'.$row,tr_status($dt->status_siswa));
            
   $excel->getActiveSheet()->getStyle('A'.$row)->applyFromArray($thinBorder);

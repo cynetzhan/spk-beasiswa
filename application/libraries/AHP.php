@@ -1,6 +1,7 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
  class AHP {
+  
   var $kriteria = array();
   var $kuadMatriks = array();
   var $sumMatriks = array();

@@ -149,6 +149,22 @@ function tr_hasil($str){
   return $arr[$str];
 }
 
+function tr_nrata($str,$flip=false){
+ $arr=array("<= 70",">= 70",">= 80",">= 90");
+ if($flip){
+  $arr = array_flip($arr);
+  if($str >= 90)
+   return 3;
+  else if($str >= 80)
+   return 2;
+  else if($str >= 70)
+   return 1;
+  else return 0;
+ } else {
+   return $arr[$str];
+ }
+}
+
 function tr_status_in($str){
  if(strtolower($str) == 'yatim')
   return '1';

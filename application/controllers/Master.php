@@ -81,21 +81,74 @@ class Master extends CI_Controller {
  
  public function tambahsiswa(){
    $data=array(
-     'aksi' => 'aksitambah',
+     'aksi' => 'tambahsiswa',
      'tombol' => 'Tambah Data Siswa',
-     'nis_siswa' => set_value('nis_siswa'),
-     'nama_siswa' => set_value('nama_siswa'),
-     'nama_ayah_siswa' => set_value('nama_ayah_siswa'),
-     'kls_siswa' => set_value('kls_siswa'),
-     'alamat_siswa' => set_value('alamat_siswa'),
-     'pnd_ayah_siswa' => set_value('pnd_ayah_siswa'),
-     'krj_ayah_siswa' => set_value('krj_ayah_siswa'),
-     'hasil_ayah_siswa' => set_value('hasil_ayah_siswa'),
-     'jmsdr_siswa' => set_value('jmsdr_siswa'),
-     'nrata_siswa' => set_value('nrata_siswa'),
-     'status_siswa' => set_value('status_siswa')
+     'nis_siswa' => set_value('nis_siswa', $this->input->post('nis_siswa')),
+     'nama_siswa' => set_value('nama_siswa', $this->input->post('nama_siswa')),
+     'nama_ayah_siswa' => set_value('nama_ayah_siswa', $this->input->post('nama_ayah_siswa')),
+     'kls_siswa' => set_value('kls_siswa', $this->input->post('kls_siswa')),
+     'alamat_siswa' => set_value('alamat_siswa', $this->input->post('alamat_siswa')),
+     'pnd_ayah_siswa' => set_value('pnd_ayah_siswa', $this->input->post('pnd_ayah_siswa')),
+     'krj_ayah_siswa' => set_value('krj_ayah_siswa', $this->input->post('krj_ayah_siswa')),
+     'hasil_ayah_siswa' => set_value('hasil_ayah_siswa', $this->input->post('hasil_ayah_siswa')),
+     'jmsdr_siswa' => set_value('jmsdr_siswa', $this->input->post('jmsdr_siswa')),
+     'nrata_siswa' => set_value('nrata_siswa', $this->input->post('nrata_siswa')),
+     'status_siswa' => set_value('status_siswa', $this->input->post('status_siswa'))
    );
-   $this->template->load('template/master','formsiswa',$data);
+    $this->_rules();
+    if($this->form_validation->run() == FALSE) {
+     //$this->flashMsg("Terdapat kesalahan saat menambahkan siswa.","Gagal","danger");
+     //$this->template->load('template/master','formsiswa',$data);
+     //redirect(base_url('publik/formdaftar'));
+     $data['err'] = $this->form_validation->error_array();
+     $this->template->load('template/master','formsiswa',$data);
+    } else {
+     unset($data['aksi']);
+     unset($data['tombol']);
+     
+     $data['nrata_siswa'] = tr_nrata($this->input->post('nrata_siswa'),true);
+     $hasil = $this->Siswa_model->insert($data);
+     if($hasil){
+       $this->flashMsg("Berhasil menambah siswa!","Sukses","success");
+       redirect(base_url('master/datasiswa'));
+     } else {
+       $this->flashMsg("Terdapat kesalahan saat menambahkan siswa. Coba lagi beberapa saat","Gagal","danger");
+       $this->template->load('template/master','formsiswa',$data);
+     }
+     //redirect(base_url('master/datasiswa'));
+    }
+ }
+ 
+ public function aksitambah() {
+   $data=array(
+     'nis_siswa' => $this->input->post('nis_siswa'),
+     'nama_siswa' => $this->input->post('nama_siswa'),
+     'nama_ayah_siswa' => $this->input->post('nama_ayah_siswa'),
+     'kls_siswa' => $this->input->post('kls_siswa'),
+     'alamat_siswa' => $this->input->post('alamat_siswa'),
+     'pnd_ayah_siswa' => $this->input->post('pnd_ayah_siswa'), 
+     'krj_ayah_siswa' => $this->input->post('krj_ayah_siswa'),
+     'hasil_ayah_siswa' => $this->input->post('hasil_ayah_siswa'), 
+     'jmsdr_siswa' => $this->input->post('jmsdr_siswa'),
+     'nrata_siswa' => tr_nrata($this->input->post('nrata_siswa'),true), 
+     'status_siswa' => $this->input->post('status_siswa')
+   );
+   $this->_rules();
+   if($this->form_validation->run() == FALSE) {
+    $data['err'] = $this->form_validation->error_array();
+    $this->template->load('template/master','formsiswa',$data);
+    //redirect(base_url('publik/formdaftar'));
+   } else {
+    $hasil = $this->Siswa_model->insert($data);
+    if($hasil){
+      $this->flashMsg("Berhasil menambah siswa!","Sukses","success");
+    } else {
+      $this->flashMsg("Terdapat kesalahan saat menambahkan siswa.","Gagal","danger");     
+    }
+    redirect(base_url('master/datasiswa'));
+   }
+   //print_r($hasil);
+   //print_r($data);
  }
 
  public function editsiswa($id) {
@@ -157,31 +210,6 @@ class Master extends CI_Controller {
    //print_r($insert);
  }
 
- public function aksitambah() {
-   $data=array(
-     'nis_siswa' => $this->input->post('nis_siswa'),
-     'nama_siswa' => $this->input->post('nama_siswa'),
-     'nama_ayah_siswa' => $this->input->post('nama_ayah_siswa'),
-     'kls_siswa' => $this->input->post('kls_siswa'),
-     'alamat_siswa' => $this->input->post('alamat_siswa'),
-     'pnd_ayah_siswa' => $this->input->post('pnd_ayah_siswa'), 
-     'krj_ayah_siswa' => $this->input->post('krj_ayah_siswa'),
-     'hasil_ayah_siswa' => $this->input->post('hasil_ayah_siswa'), 
-     'jmsdr_siswa' => $this->input->post('jmsdr_siswa'),
-     'nrata_siswa' => $this->input->post('nrata_siswa'), 
-     'status_siswa' => $this->input->post('status_siswa')
-   );
-   $hasil = $this->Siswa_model->insert($data);
-   if($hasil){
-     $this->flashMsg("Berhasil menambah siswa!","Sukses","success");
-   } else {
-     $this->flashMsg("Terdapat kesalahan saat menambahkan siswa.","Gagal","danger");     
-   }
-   redirect(base_url('master/datasiswa'));
-   //print_r($hasil);
-   //print_r($data);
- }
-
  public function aksiupdate(){
    $data=array(
      'nis_siswa' => $this->input->post('nis_siswa'),
@@ -193,9 +221,12 @@ class Master extends CI_Controller {
      'krj_ayah_siswa' => $this->input->post('krj_ayah_siswa'),
      'hasil_ayah_siswa' => $this->input->post('hasil_ayah_siswa'), 
      'jmsdr_siswa' => $this->input->post('jmsdr_siswa'),
-     'nrata_siswa' => $this->input->post('nrata_siswa'), 
+     'nrata_siswa' => ($this->input->post('nrata_siswa') == '')?'':tr_nrata($this->input->post('nrata_siswa'),true), 
      'status_siswa' => $this->input->post('status_siswa')
    );
+   if($data['nrata_siswa'] == ''){
+    unset($data['nrata_siswa']);
+   }
    $hasil = $this->Siswa_model->update($this->input->post('nis_siswa_old'),$data);
    if($hasil){
      $this->flashMsg("Berhasil menambah siswa!","Sukses","success");
@@ -289,7 +320,8 @@ class Master extends CI_Controller {
    }
    $data=array(
      'eigenkolom' => $this->Saw_model->getAturan("PAKAR"),
-     'kriterialist' => $this->Kriteria_model->kriteriaLabel,
+     //'kriterialist' => $this->Kriteria_model->kriteriaLabel,
+     'kriterialist' => $this->Kriteria_model->getKriteria(),
      'eigenkrit' => $eigenuser
    );
    $this->template->load('template/master','sawmaster',$data);
@@ -484,8 +516,25 @@ class Master extends CI_Controller {
  }
  
  private function flashMsg($msg,$alt,$cls){
- $this->session->set_flashdata(array('class'=>$cls,'alert'=>$alt,'message'=>$msg));
-}
+  $this->session->set_flashdata(array('class'=>$cls,'alert'=>$alt,'message'=>$msg));
+ }
+ 
+ public function _rules(){
+  $error=array(
+   "required"=>"Kolom %s harus diisi",
+   "unique"=>"Siswa dengan %s yang sama telah terdaftar. Mohon periksa kembali data siswa",
+   "is_unique"=>"Siswa dengan %s yang sama telah terdaftar. Mohon periksa kembali data siswa",
+   "is_natural"=>"Masukan hanya berupa angka",
+   "numeric"=>"Masukan hanya berupa angka. Ganti koma dengan titik untuk desimal jika masih salah"
+  );
+  $this->form_validation->set_rules('nis_siswa', 'NIS', 'is_unique[data_siswa.nis_siswa]|trim|required',$error);
+  $this->form_validation->set_rules('nama_siswa', 'Nama', 'trim|required',$error);
+  $this->form_validation->set_rules('kls_siswa', 'Kelas', 'required',$error);
+  $this->form_validation->set_rules('alamat_siswa', 'Alamat', 'trim|required',$error);
+  $this->form_validation->set_rules('jmsdr_siswa', 'Jumlah Saudara', 'is_natural|trim|required',$error);
+  $this->form_validation->set_rules('nrata_siswa', 'Nilai Rata-rata', 'numeric|trim|required',$error);
+  $this->form_validation->set_error_delimiters('<span class="text-danger">', '</span>');
+ }
 
 }
 
